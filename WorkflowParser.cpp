@@ -36,7 +36,7 @@ std::string WorkflowParser::getNum(std::string &line) {
     if (pos == std::string::npos) {
         throw BlockDescErr("No block number");
     }
-    num = line.substr(0, pos);
+    num = line.substr(0, pos-1);
     return num;
 }
 
