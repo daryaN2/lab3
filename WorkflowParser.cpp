@@ -4,7 +4,7 @@
 
 #include "WorkflowParser.h"
 
-std::map<std::string, std::vector<std::string>> WorkflowParser::getBlocks(std::istream &in) {
+std::map<std::string, std::vector<std::string>> WorkflowParser::getBlocks(std::ifstream &in) {
     std::map<std::string, std::vector<std::string>> ret;
     std::string line;
     std::getline (in, line);
@@ -16,54 +16,52 @@ std::map<std::string, std::vector<std::string>> WorkflowParser::getBlocks(std::i
         if (in.eof()) {
             throw BlockDescErr("No \"csed\" at the end of block description");
         }
+        int pos1, pos2;
         std::string num;
-        num = getNum(line);
+        num = getNum(line, pos1);
         std::string name;
-        name = getName(line);
+        name = getName(line, pos1, pos2);
         std::vector<std::string> nameArgs;
         nameArgs.emplace_back(name);
-        nameArgs = getArgs(line);
+        nameArgs = getArgs(line, pos1, pos2, nameArgs);
         ret.emplace(num, nameArgs);
         std::getline(in, line);
     }
-
     return ret;
 }
 
-std::string WorkflowParser::getNum(std::string &line) {
+std::string WorkflowParser::getNum(std::string &line, int& pos1) {
     std::string num;
-    int pos = line.find(' ');
-    if (pos == std::string::npos) {
+    pos1 = line.find(' ');
+    if (pos1 == std::string::npos) {
         throw BlockDescErr("No block number");
     }
-    num = line.substr(0, pos);
+    num = line.substr(0, pos1);
     return num;
 }
 
-std::string WorkflowParser::getName(std::string &line) {
+std::string WorkflowParser::getName(std::string &line, int& pos1, int& pos2) {
     std::string name;
-    int pos1 = 0;
     pos1 = line.find_first_not_of("= ", pos1);
-    int pos2 = line.find(' ', pos1);
+    pos2 = line.find(' ', pos1);
     if (pos1 == std::string::npos) {
         throw BlockDescErr("No block name");
     }
-    //name = line.substr(pos1, pos2-pos1);
+    //name = line.substr(pos1, pos2-1);
     name.append(line, pos1, pos2-pos1);
     return name;
 }
 
-std::vector<std::string> WorkflowParser::getArgs(std::string &line) {
-    std::vector<std::string> nameArgs;
+std::vector<std::string> WorkflowParser::getArgs(std::string &line, int& pos1, int& pos2, std::vector<std::string>& nameArgs) {
     std::string args;
-    int pos1, pos2 = 0;
     while (pos2 != std::string::npos) {
         pos1 = line.find_first_not_of("= ", pos2);
         pos2 = line.find(' ', pos1);
-        //args = line.substr(pos1, pos2-pos1);
+        //args = line.substr(pos1, pos2-1);
         args.append(line, pos1, pos2-pos1);
         nameArgs.emplace_back(args);
         args.erase();
     }
     return nameArgs;
 }
+
